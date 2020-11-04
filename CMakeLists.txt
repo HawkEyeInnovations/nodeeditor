@@ -1,5 +1,7 @@
+# THIS CMAKE FILE HAS BEEN MODIFIED TO CONVERT THE PROJECT FROM A DLL TO STATIC LIBRARY AND TO MAKE IT WORK WITH OUR WORKFLOW
+
 cmake_minimum_required(VERSION 3.2)
-# version 3.4 is required as other do not work with C++14 and clang
+# version 3.4 is required as other do not work with C++14 and clan
 
 project(NodeEditor CXX)
 
@@ -15,12 +17,10 @@ endif()
 
 set(NE_DEVELOPER_DEFAULTS "${is_root_project}" CACHE BOOL "Turns on default settings for development of NodeEditor")
 
-option(BUILD_TESTING "Build tests" "${NE_DEVELOPER_DEFAULTS}")
 option(BUILD_EXAMPLES "Build Examples" "${NE_DEVELOPER_DEFAULTS}")
-option(BUILD_SHARED_LIBS "Build as shared library" ON)
 option(NE_FORCE_TEST_COLOR "Force colorized unit test output" OFF)
 
-enable_testing()
+#enable_testing()
 
 if(NE_DEVELOPER_DEFAULTS)
   set(CMAKE_CXX_STANDARD 14)
@@ -34,7 +34,7 @@ endif()
 add_subdirectory(external)
 
 # Find the QtWidgets library
-find_package(Qt5 5.3 COMPONENTS
+find_package(Qt5 COMPONENTS
              Core
              Widgets
              Gui)
@@ -69,9 +69,7 @@ set(CPP_SOURCE_FILES
   src/StyleCollection.cpp
 )
 
-# If we want to give the option to build a static library,
-# set BUILD_SHARED_LIBS option to OFF
-add_library(nodes
+add_library(nodes STATIC
   ${CPP_SOURCE_FILES}
   ${RESOURCES}
 )
@@ -96,9 +94,10 @@ target_link_libraries(nodes
 target_compile_definitions(nodes
   PUBLIC
     ${Qt5Widgets_DEFINITIONS}
-    NODE_EDITOR_SHARED
+    NODE_EDITOR_STATIC
+    #NODE_EDITOR_SHARED     Not building a DLL
   PRIVATE
-    NODE_EDITOR_EXPORTS
+    #NODE_EDITOR_EXPORTS    Not building a DLL
     #NODE_DEBUG_DRAWING
     QT_NO_KEYWORDS
 )
@@ -120,6 +119,7 @@ set_target_properties(nodes
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    FOLDER "Support Libs"
 )
 
 ######
@@ -148,40 +148,43 @@ endif()
 # Automated Tests
 ##
 
-if(BUILD_TESTING)
-  add_subdirectory(test)
-endif()
+# Tests require Catch2, so just disable them
+#if(BUILD_TESTING)
+#  add_subdirectory(test)
+#endif()
 
 ###############
 # Installation
 ##
 
-include(GNUInstallDirs)
+if (is_root_project)
+  include(GNUInstallDirs)
 
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/NodeEditor)
+  set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/NodeEditor)
 
-install(TARGETS nodes
-  EXPORT NodeEditorTargets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+  install(TARGETS nodes
+    EXPORT NodeEditorTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(EXPORT NodeEditorTargets
-  FILE NodeEditorTargets.cmake
-  NAMESPACE NodeEditor::
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+  install(EXPORT NodeEditorTargets
+    FILE NodeEditorTargets.cmake
+    NAMESPACE NodeEditor::
+    DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-include(CMakePackageConfigHelpers)
+  include(CMakePackageConfigHelpers)
 
-configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/NodeEditorConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/NodeEditorConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
+  configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/NodeEditorConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/NodeEditorConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+  )
 
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/NodeEditorConfig.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/NodeEditorConfig.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+  )
+endif(is_root_project)
