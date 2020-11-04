@@ -153,9 +153,24 @@ drawHoveredOrSelected(QPainter * painter,
       QtNodes::StyleCollection::connectionStyle();
     double const lineWidth     = connectionStyle.lineWidth();
 
-    p.setWidth(2 * lineWidth);
+    QColor selectedHaloColor = connectionStyle.selectedHaloColor();
+
+    if (connectionStyle.useComplementHaloColors())
+    {
+        if (connectionStyle.useDataDefinedColors())
+        {
+            auto dataTypeOut = connection.dataType(QtNodes::PortType::Out);
+            selectedHaloColor = connectionStyle.complementColor(dataTypeOut.id);
+        }
+        else
+        {
+            selectedHaloColor = connectionStyle.complementColor();
+        }
+    }
+
+    p.setWidth(3 * lineWidth);
     p.setColor(selected ?
-               connectionStyle.selectedHaloColor() :
+               selectedHaloColor :
                connectionStyle.hoveredColor());
 
     painter->setPen(p);
@@ -203,7 +218,7 @@ drawNormalLine(QPainter * painter,
 
     normalColorOut  = connectionStyle.normalColor(dataTypeOut.id);
     normalColorIn   = connectionStyle.normalColor(dataTypeIn.id);
-    selectedColor = normalColorOut.darker(200);
+    selectedColor = normalColorIn;
   }
 
   // geometry
@@ -226,7 +241,7 @@ drawNormalLine(QPainter * painter,
   {
     painter->setBrush(Qt::NoBrush);
 
-    QColor c = normalColorOut; 
+    QColor c = normalColorOut;
     if (selected)
       c = c.darker(200);
     p.setColor(c);
@@ -241,11 +256,11 @@ drawNormalLine(QPainter * painter,
 
       if (i == segments / 2)
       {
-        QColor c = normalColorIn; 
+        QColor c2 = normalColorIn;
         if (selected)
-          c = c.darker(200);
+          c2 = c2.darker(200);
 
-        p.setColor(c);
+        p.setColor(c2);
         painter->setPen(p);
       }
       painter->drawLine(cubic.pointAtPercent(ratioPrev),

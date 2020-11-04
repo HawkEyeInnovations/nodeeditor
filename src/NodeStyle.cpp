@@ -116,6 +116,7 @@ loadJsonFromByteArray(QByteArray const &byteArray)
 
   NODE_STYLE_READ_COLOR(obj, NormalBoundaryColor);
   NODE_STYLE_READ_COLOR(obj, SelectedBoundaryColor);
+  NODE_STYLE_READ_COLOR(obj, HoverBoundaryColor);
   NODE_STYLE_READ_COLOR(obj, GradientColor0);
   NODE_STYLE_READ_COLOR(obj, GradientColor1);
   NODE_STYLE_READ_COLOR(obj, GradientColor2);

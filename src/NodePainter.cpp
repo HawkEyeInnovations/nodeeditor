@@ -40,10 +40,6 @@ paint(QPainter* painter,
 
   drawNodeRect(painter, geom, model, graphicsObject);
 
-  drawConnectionPoints(painter, geom, state, model, scene);
-
-  drawFilledConnectionPoints(painter, geom, state, model);
-
   drawModelName(painter, geom, state, model);
 
   drawEntryLabels(painter, geom, state, model);
@@ -51,6 +47,10 @@ paint(QPainter* painter,
   drawResizeRect(painter, geom, model);
 
   drawValidationRect(painter, geom, model, graphicsObject);
+
+  drawConnectionPoints(painter, geom, state, model, scene);
+
+  drawFilledConnectionPoints(painter, geom, state, model);
 
   /// call custom painter
   if (auto painterDelegate = model->painterDelegate())
@@ -75,12 +75,13 @@ drawNodeRect(QPainter* painter,
 
   if (geom.hovered())
   {
+    color = nodeStyle.HoverBoundaryColor;
     QPen p(color, nodeStyle.HoveredPenWidth);
     painter->setPen(p);
   }
   else
   {
-    QPen p(color, nodeStyle.PenWidth);
+    QPen p(color, graphicsObject.isSelected() ? nodeStyle.HoveredPenWidth : nodeStyle.PenWidth);
     painter->setPen(p);
   }
 
@@ -204,11 +205,11 @@ drawFilledConnectionPoints(QPainter * painter,
 
     for (size_t i = 0; i < n; ++i)
     {
-      QPointF p = geom.portScenePosition(i, portType);
+      QPointF p = geom.portScenePosition(static_cast<PortIndex>(i), portType);
 
       if (!state.getEntries(portType)[i].empty())
       {
-        auto const & dataType = model->dataType(portType, i);
+        auto const & dataType = model->dataType(portType, static_cast<PortIndex>(i));
 
         if (connectionStyle.useDataDefinedColors())
         {
@@ -274,35 +275,49 @@ drawEntryLabels(QPainter * painter,
                 NodeState const & state,
                 NodeDataModel const * model)
 {
-  QFontMetrics const & metrics =
-    painter->fontMetrics();
+  QFont f = painter->font();
+  f.setBold(true);
+  QFontMetrics metrics(f);
+  painter->setFont(f);
+
+  auto const &connectionStyle = StyleCollection::connectionStyle();
+  auto const &nodeStyle = model->nodeStyle();
 
   for (PortType portType: {PortType::Out, PortType::In})
   {
-    auto const &nodeStyle = model->nodeStyle();
-
     auto& entries = state.getEntries(portType);
 
     size_t n = entries.size();
 
     for (size_t i = 0; i < n; ++i)
     {
-      QPointF p = geom.portScenePosition(i, portType);
+      QPointF p = geom.portScenePosition(static_cast<PortIndex>(i), portType);
 
       if (entries[i].empty())
-        painter->setPen(nodeStyle.FontColorFaded);
-      else
-        painter->setPen(nodeStyle.FontColor);
-
-      QString s;
-
-      if (model->portCaptionVisible(portType, i))
       {
-        s = model->portCaption(portType, i);
+          painter->setPen(nodeStyle.FontColorFaded);
       }
       else
       {
-        s = model->dataType(portType, i).name;
+        if (connectionStyle.useDataDefinedColors())
+        {
+            painter->setPen(connectionStyle.normalColor(model->dataType(portType, static_cast<PortIndex>(i)).id));
+        }
+        else
+        {
+            painter->setPen(nodeStyle.ConnectionPointColor);
+        }
+      }
+
+      QString s;
+
+      if (model->portCaptionVisible(portType, static_cast<PortIndex>(i)))
+      {
+        s = model->portCaption(portType, static_cast<PortIndex>(i));
+      }
+      else
+      {
+        s = model->dataType(portType, static_cast<PortIndex>(i)).name;
       }
 
       auto rect = metrics.boundingRect(s);
@@ -326,6 +341,9 @@ drawEntryLabels(QPainter * painter,
       painter->drawText(p, s);
     }
   }
+
+  f.setBold(false);
+  painter->setFont(f);
 }
 
 
@@ -363,12 +381,13 @@ drawValidationRect(QPainter * painter,
 
     if (geom.hovered())
     {
+      color = nodeStyle.HoverBoundaryColor;
       QPen p(color, nodeStyle.HoveredPenWidth);
       painter->setPen(p);
     }
     else
     {
-      QPen p(color, nodeStyle.PenWidth);
+      QPen p(color, graphicsObject.isSelected() ? nodeStyle.HoveredPenWidth : nodeStyle.PenWidth);
       painter->setPen(p);
     }
 

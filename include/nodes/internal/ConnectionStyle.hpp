@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtGui/QColor>
-
+#include <QMap>
 #include "Export.hpp"
 #include "Style.hpp"
 
@@ -28,11 +28,15 @@ private:
 
   void loadJsonFromByteArray(QByteArray const &byteArray) override;
 
+  QColor toComplement(const QColor& color) const;
+
 public:
 
   QColor constructionColor() const;
   QColor normalColor() const;
   QColor normalColor(QString typeId) const;
+  QColor complementColor() const;
+  QColor complementColor(QString typeId) const;
   QColor selectedColor() const;
   QColor selectedHaloColor() const;
   QColor hoveredColor() const;
@@ -42,7 +46,7 @@ public:
   float pointDiameter() const;
 
   bool useDataDefinedColors() const;
-
+  bool useComplementHaloColors() const;
 private:
 
   QColor ConstructionColor;
@@ -56,5 +60,7 @@ private:
   float PointDiameter;
 
   bool UseDataDefinedColors;
+  bool UseComplementHaloColors;
+  QMap<QString, QColor> DataDefinedColors;
 };
 }

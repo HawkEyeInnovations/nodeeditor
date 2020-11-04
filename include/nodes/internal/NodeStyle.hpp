@@ -32,6 +32,7 @@ public:
 
   QColor NormalBoundaryColor;
   QColor SelectedBoundaryColor;
+  QColor HoverBoundaryColor;
   QColor GradientColor0;
   QColor GradientColor1;
   QColor GradientColor2;
