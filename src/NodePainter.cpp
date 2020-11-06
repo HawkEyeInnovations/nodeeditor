@@ -69,19 +69,17 @@ drawNodeRect(QPainter* painter,
 {
   NodeStyle const& nodeStyle = model->nodeStyle();
 
-  auto color = graphicsObject.isSelected()
-               ? nodeStyle.SelectedBoundaryColor
-               : nodeStyle.NormalBoundaryColor;
+  auto color = nodeStyle.UseHoverColor ? nodeStyle.HoverBoundaryColor : nodeStyle.NormalBoundaryColor;
+  color = graphicsObject.isSelected() ? nodeStyle.SelectedBoundaryColor : color;
 
-  if (geom.hovered())
+  if (geom.hovered() || graphicsObject.isSelected())
   {
-    color = nodeStyle.HoverBoundaryColor;
     QPen p(color, nodeStyle.HoveredPenWidth);
     painter->setPen(p);
   }
   else
   {
-    QPen p(color, graphicsObject.isSelected() ? nodeStyle.HoveredPenWidth : nodeStyle.PenWidth);
+    QPen p(color, nodeStyle.PenWidth);
     painter->setPen(p);
   }
 
@@ -381,7 +379,7 @@ drawValidationRect(QPainter * painter,
 
     if (geom.hovered())
     {
-      color = nodeStyle.HoverBoundaryColor;
+      color = nodeStyle.UseHoverColor ? nodeStyle.HoverBoundaryColor : nodeStyle.NormalBoundaryColor;
       QPen p(color, nodeStyle.HoveredPenWidth);
       painter->setPen(p);
     }

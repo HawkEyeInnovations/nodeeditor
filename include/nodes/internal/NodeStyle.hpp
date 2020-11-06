@@ -47,6 +47,8 @@ public:
   QColor WarningColor;
   QColor ErrorColor;
 
+  bool UseHoverColor;
+
   float PenWidth;
   float HoveredPenWidth;
 

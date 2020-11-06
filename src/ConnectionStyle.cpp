@@ -165,15 +165,14 @@ loadJsonFromByteArray(QByteArray const &byteArray)
     CONNECTION_STYLE_READ_COLOR(obj, ConstructionColor);
     CONNECTION_STYLE_READ_COLOR(obj, NormalColor);
     CONNECTION_STYLE_READ_COLOR(obj, SelectedColor);
-    CONNECTION_STYLE_READ_COLOR(obj, SelectedHaloColor);
     CONNECTION_STYLE_READ_COLOR(obj, HoveredColor);
 
     CONNECTION_STYLE_READ_FLOAT(obj, LineWidth);
     CONNECTION_STYLE_READ_FLOAT(obj, ConstructionLineWidth);
     CONNECTION_STYLE_READ_FLOAT(obj, PointDiameter);
 
+    CONNECTION_STYLE_READ_BOOL(obj, UseHoverColor);
     CONNECTION_STYLE_READ_BOOL(obj, UseDataDefinedColors);
-    CONNECTION_STYLE_READ_BOOL(obj, UseComplementHaloColors);
     CONNECTION_STYLE_READ_DATA_DEFINED_COLOR_MAP(obj, DataDefinedColors);
 }
 
@@ -252,14 +251,6 @@ selectedColor() const
 
 QColor
 ConnectionStyle::
-selectedHaloColor() const
-{
-    return SelectedHaloColor;
-}
-
-
-QColor
-ConnectionStyle::
 hoveredColor() const
 {
     return HoveredColor;
@@ -289,17 +280,16 @@ pointDiameter() const
     return PointDiameter;
 }
 
+bool
+ConnectionStyle::
+useHoverColor() const
+{
+    return UseHoverColor;
+}
 
 bool
 ConnectionStyle::
 useDataDefinedColors() const
 {
     return UseDataDefinedColors;
-}
-
-bool
-ConnectionStyle::
-useComplementHaloColors() const
-{
-    return UseComplementHaloColors;
 }

@@ -38,29 +38,27 @@ public:
   QColor complementColor() const;
   QColor complementColor(QString typeId) const;
   QColor selectedColor() const;
-  QColor selectedHaloColor() const;
   QColor hoveredColor() const;
 
   float lineWidth() const;
   float constructionLineWidth() const;
   float pointDiameter() const;
 
+  bool useHoverColor() const;
   bool useDataDefinedColors() const;
-  bool useComplementHaloColors() const;
 private:
 
   QColor ConstructionColor;
   QColor NormalColor;
   QColor SelectedColor;
-  QColor SelectedHaloColor;
   QColor HoveredColor;
 
   float LineWidth;
   float ConstructionLineWidth;
   float PointDiameter;
 
+  bool UseHoverColor;
   bool UseDataDefinedColors;
-  bool UseComplementHaloColors;
   QMap<QString, QColor> DataDefinedColors;
 };
 }

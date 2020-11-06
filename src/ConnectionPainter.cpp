@@ -131,64 +131,14 @@ drawSketchLine(QPainter * painter,
 
 static
 void
-drawHoveredOrSelected(QPainter * painter,
-                      Connection const & connection)
-{
-  using QtNodes::ConnectionGeometry;
-
-  ConnectionGeometry const& geom = connection.connectionGeometry();
-  bool const hovered = geom.hovered();
-
-  auto const& graphicsObject =
-    connection.getConnectionGraphicsObject();
-
-  bool const selected = graphicsObject.isSelected();
-
-  // drawn as a fat background
-  if (hovered || selected)
-  {
-    QPen p;
-
-    auto const &connectionStyle =
-      QtNodes::StyleCollection::connectionStyle();
-    double const lineWidth     = connectionStyle.lineWidth();
-
-    QColor selectedHaloColor = connectionStyle.selectedHaloColor();
-
-    if (connectionStyle.useComplementHaloColors())
-    {
-        if (connectionStyle.useDataDefinedColors())
-        {
-            auto dataTypeOut = connection.dataType(QtNodes::PortType::Out);
-            selectedHaloColor = connectionStyle.complementColor(dataTypeOut.id);
-        }
-        else
-        {
-            selectedHaloColor = connectionStyle.complementColor();
-        }
-    }
-
-    p.setWidth(3 * lineWidth);
-    p.setColor(selected ?
-               selectedHaloColor :
-               connectionStyle.hoveredColor());
-
-    painter->setPen(p);
-    painter->setBrush(Qt::NoBrush);
-
-    // cubic spline
-    auto cubic = cubicPath(geom);
-    painter->drawPath(cubic);
-  }
-}
-
-
-static
-void
 drawNormalLine(QPainter * painter,
                Connection const & connection)
 {
   using QtNodes::ConnectionState;
+
+  // geometry
+  ConnectionGeometry const& geom = connection.connectionGeometry();
+  bool const hovered = geom.hovered();
 
   ConnectionState const& state =
     connection.connectionState();
@@ -203,7 +153,6 @@ drawNormalLine(QPainter * painter,
 
   QColor normalColorOut  = connectionStyle.normalColor();
   QColor normalColorIn   = connectionStyle.normalColor();
-  QColor selectedColor = connectionStyle.selectedColor();
 
   bool gradientColor = false;
 
@@ -218,12 +167,7 @@ drawNormalLine(QPainter * painter,
 
     normalColorOut  = connectionStyle.normalColor(dataTypeOut.id);
     normalColorIn   = connectionStyle.normalColor(dataTypeIn.id);
-    selectedColor = normalColorIn;
   }
-
-  // geometry
-
-  ConnectionGeometry const& geom = connection.connectionGeometry();
 
   double const lineWidth = connectionStyle.lineWidth();
 
@@ -235,9 +179,31 @@ drawNormalLine(QPainter * painter,
   auto const& graphicsObject = connection.getConnectionGraphicsObject();
   bool const selected = graphicsObject.isSelected();
 
-
   auto cubic = cubicPath(geom);
-  if (gradientColor)
+
+  if (hovered || selected)
+  {
+      QColor selectedHaloColor = connectionStyle.selectedColor();
+      QColor hoverHaloColor = connectionStyle.hoveredColor();
+      if (!connectionStyle.useHoverColor())
+      {
+          if (connectionStyle.useDataDefinedColors())
+          {
+              auto dataTypeOut = connection.dataType(QtNodes::PortType::Out);
+              hoverHaloColor = connectionStyle.normalColor(dataTypeOut.id);
+          }
+          else
+          {
+              hoverHaloColor = connectionStyle.normalColor();
+          }
+      }
+      p.setWidth(lineWidth*3);
+      p.setColor(selected ? selectedHaloColor : hoverHaloColor);
+      painter->setPen(p);
+      painter->setBrush(Qt::NoBrush);
+      painter->drawPath(cubic);
+  }
+  else if (gradientColor)
   {
     painter->setBrush(Qt::NoBrush);
 
@@ -280,15 +246,8 @@ drawNormalLine(QPainter * painter,
   else
   {
     p.setColor(normalColorOut);
-
-    if (selected)
-    {
-      p.setColor(selectedColor);
-    }
-
     painter->setPen(p);
     painter->setBrush(Qt::NoBrush);
-
     painter->drawPath(cubic);
   }
 }
@@ -299,8 +258,6 @@ ConnectionPainter::
 paint(QPainter* painter,
       Connection const &connection)
 {
-  drawHoveredOrSelected(painter, connection);
-
   drawSketchLine(painter, connection);
 
   drawNormalLine(painter, connection);
